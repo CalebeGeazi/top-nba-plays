@@ -102,7 +102,7 @@ sub get_delta_days {
         ( $mday, $mon, $year )    = (localtime($yesterday))[3 .. 5];
         $year                     = $year + 1900;
         $start_date               = sprintf ( "%02d-%02d-$year", $mon + 1, $mday );
-        $end_date                 = $today;
+        $end_date                 = $start_date;
     }
 
     # split today's date into parts
@@ -123,7 +123,7 @@ sub get_delta_days {
     );
 
     # verify the start date >= the end date
-    die ( "start-date must be greater than end-date" ) if $delta_days_end_date >= $delta_days_start_date;
+    die ( "start-date must be >= than end-date" ) if $delta_days_end_date > $delta_days_start_date;
 
     return ( $delta_days_end_date, $delta_days_start_date );
 }
@@ -273,32 +273,49 @@ sub process_youtube_data {
 sub build_sql {
     my $sql_parts  = shift;
 
+    # return value
+    my $sql = "";
+
     # first select the data to check if we need to update or insert
-    my $select = "SELECT date FROM $TABLE_NAME WHERE date = '" . $sql_parts->{date} . "'";
+    my $select = "SELECT date, rowid FROM $TABLE_NAME WHERE date = '" . $sql_parts->{date} . "'";
     my $select_json_response = execute_fusion_sql( $select );
     my $insert_or_update = "";
+    my $row_id;
     if ( $select_json_response ) {
         my $hash = decode_json( $select_json_response );
         if ( $hash->{kind} eq $FUSION_RESPONSE ) {
-            my @columns = @{$hash->{columns}};
-            my @rows    = @{$hash->{rows}};
-            if ( scalar ( @rows ) > 1 ) {
-                
+            if ( $hash->{rows} ) {
+                my @rows    = @{$hash->{rows}};
+                my $row     = $rows[0];
+                $row_id     = $row->[1];
             }
         }
 
     }
+
     # if there's already a row in the table for the date then update this data 
-    #     if we have a y_id
-    # else insert new row
-    my $columns    = join (',', sort keys %{$sql_parts} );
-    my $prefix_sql = "INSERT INTO $TABLE_NAME ($columns) VALUES";
-    my $values     = "";
-    foreach my $col ( sort keys %{$sql_parts} ) {
-        $values .= "'$sql_parts->{$col}',"
+    if ( $row_id ) {
+        my $prefix_sql = "UPDATE $TABLE_NAME SET ";
+        my $ending_sql = " WHERE rowid = '$row_id'";
+        my $values     = "";
+        foreach my $col ( sort keys %{$sql_parts} ) {
+            $values .= "$col = '$sql_parts->{$col}',"
+        }
+        chop( $values );
+        $sql = "$prefix_sql$values$ending_sql";
     }
-    chop( $values );
-    my $sql = "$prefix_sql ($values)";
+    # else insert new row
+    else {
+        my $columns    = join (',', sort keys %{$sql_parts} );
+        my $prefix_sql = "INSERT INTO $TABLE_NAME ($columns) VALUES";
+        my $values     = "";
+        foreach my $col ( sort keys %{$sql_parts} ) {
+            $values .= "'$sql_parts->{$col}',"
+        }
+        chop( $values );
+        $sql = "$prefix_sql ($values)";
+    }
+
     return $sql;
 }
 

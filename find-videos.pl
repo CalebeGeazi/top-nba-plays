@@ -20,11 +20,13 @@ my %args = (
     'start-date'  => 'yesterday',
     'end-date'    => 'yesterday',
     'config-file' => '',
+    'custom-q' => '',
 );
 GetOptions(
     'start-date=s'  => \$args{'start-date'},
     'end-date=s'    => \$args{'end-date'},
     'config-file=s' => \$args{'config-file'},
+	'custom-q=s' => \$args{'custom-q'},
 );
 
 # process config-file
@@ -142,6 +144,10 @@ sub find_and_insert_videos {
 
         # set query string params
         $q = $PREFIX_Q . $q;
+        
+        if ( $args{'custom-q'} ) {
+		      $q = $args{'custom-q'};        
+        }
         my %query_params = (
             part           => $PART,
             type           => $TYPE,
@@ -220,7 +226,7 @@ sub process_youtube_data {
 
                 # check if this video is the one we're looking for by comparing the title with all
                 # our search terms
-                if ( $title && ( $title =~ m/$q/i || $alt_title =~ m/$q/i || $title =~ m/$secondary_q/i ) ) {
+                if ( $title && ( $title eq $q || $alt_title eq $q || $title eq $secondary_q ) ) {
                     $successful_find{y_id}    = $item->{id}->{videoId};
                     $successful_find{date}    = $fusion_table_date;
                     $successful_find{y_title} = $title;
@@ -334,22 +340,9 @@ sub execute_fusion_sql {
 sub send_email {
     my $date = shift;
 
-    my $message = Email::MIME->create(
-      header_str => [
-        From    => 'nbatopplays@calebegeazi.com',
-        To      => $args{email},
-        Subject => 'Top plays for ' . $date . ' Not Found.',
-      ],
-      attributes => {
-        encoding => 'quoted-printable',
-        charset  => 'ISO-8859-1',
-      },
-      body_str => "",
-    );
-
-    # send the message
-    use Email::Sender::Simple qw(sendmail);
-    sendmail($message);
+    my $message = "Top Plays for $date Not Found";
+    my $cmd     = "echo $message | mail -s \"$message\" $args{email}"; 
+    my $out     = `$cmd`;
 }
 
 # process config-file

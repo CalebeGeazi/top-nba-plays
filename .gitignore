@@ -37,3 +37,9 @@ captures/
 
 # perl script config file
 config.json
+
+# cron file
+cron.txt
+
+# log files
+*.log

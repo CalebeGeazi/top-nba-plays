@@ -245,35 +245,34 @@ sub process_youtube_data {
         }
     }
 
-            # if we got a successful find, insert the video into my fusion table
-            if ( %successful_find ) {
-                # build the sql
-                my $sql = build_sql( \%successful_find );
-                print "\n\nSQL:\n$sql\n\n";
+    # if we got a successful find, insert the video into my fusion table
+    if ( %successful_find ) {
+        # build the sql
+        my $sql = build_sql( \%successful_find );
+        print "\n\nSQL:\n$sql\n\n";
 
-                # make API Call to insert/update data into fusion table
-                my $json_response = execute_fusion_sql( $sql );
-                print "\n\nJSON Response:\n$json_response\n\n";
+        # make API Call to insert/update data into fusion table
+        my $json_response = execute_fusion_sql( $sql );
+        print "\n\nJSON Response:\n$json_response\n\n";
 
-                # sleep so we don't make too many api calls to Google in a short amount of time
-                sleep (2);
-            } 
-            # if we didn't find the video, insert data saying we didn't find it and send email
-            else {
-                my $sql = build_sql( \%unsuccessful_find );
-                print "\n\nSQL:\n$sql\n\n";
+        # sleep so we don't make too many api calls to Google in a short amount of time
+        sleep (2);
+    } 
+    # if we didn't find the video, insert data saying we didn't find it and send email
+    else {
+        my $sql = build_sql( \%unsuccessful_find );
+        print "\n\nSQL:\n$sql\n\n";
 
-                # make API Call to insert data into fusion table
-                my $json_response = execute_fusion_sql( $sql );
-                print "\n\nJSON Response:\n$json_response\n\n";
+        # make API Call to insert data into fusion table
+        my $json_response = execute_fusion_sql( $sql );
+        print "\n\nJSON Response:\n$json_response\n\n";
 
-                # sleep so we don't make too many api calls to Google in a short amount of time
-                sleep (2);
+        # sleep so we don't make too many api calls to Google in a short amount of time
+        sleep (2);
 
-                # send alert saying video was not found.
-                send_email( $fusion_table_date );
-            }    
-    
+        # send alert saying video was not found.
+        send_email( $fusion_table_date );
+    }
 }
 
 # build sql statement using the successful find hash

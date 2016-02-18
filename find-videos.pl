@@ -201,6 +201,13 @@ sub process_youtube_data {
     my ( $data, $q, $fusion_table_date ) = @_;
 
     my %successful_find;
+    my %unsuccessful_find = (
+        y_id    => '',
+        date    => $fusion_table_date,
+        y_title => '',
+        status  => 'not found',
+        type    => 'default',
+    );
     if ( $data ) {
         # the video data is in the items arrary
         my $items = $data->{items};
@@ -235,6 +242,8 @@ sub process_youtube_data {
                     last;
                 }
             }
+        }
+    }
 
             # if we got a successful find, insert the video into my fusion table
             if ( %successful_find ) {
@@ -251,13 +260,6 @@ sub process_youtube_data {
             } 
             # if we didn't find the video, insert data saying we didn't find it and send email
             else {
-                my %unsuccessful_find = (
-                    y_id    => '',
-                    date    => $fusion_table_date,
-                    y_title => '',
-                    status  => 'not found',
-                    type    => 'default',
-                );
                 my $sql = build_sql( \%unsuccessful_find );
                 print "\n\nSQL:\n$sql\n\n";
 
@@ -270,9 +272,8 @@ sub process_youtube_data {
 
                 # send alert saying video was not found.
                 send_email( $fusion_table_date );
-            }
-        }
-    }
+            }    
+    
 }
 
 # build sql statement using the successful find hash

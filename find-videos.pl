@@ -66,6 +66,8 @@ my %DAYS            = (
     29 => '29th', 30 => '30th', 31 => '31st',
 );
 
+my $api_request = "";
+
 ########################## END SETUP ###########################
 
 
@@ -161,7 +163,7 @@ sub find_and_insert_videos {
         );
 
         # build api request
-        my $api_request = build_url(
+        $api_request = build_url(
             base_uri => $BASE_URI,
             path     => $PATH,
             query    => \%query_params,
@@ -343,8 +345,9 @@ sub send_email {
     return if !$args{'send-email'};
     my $date = shift;
 
-    my $message = "Top Plays for $date Not Found";
-    my $cmd     = "echo $message | mail -s \"$message\" $args{email}"; 
+    my $subject = "Top Plays for $date Not Found";
+    my $body    = "API Request: $api_request"
+    my $cmd     = "echo $subject | mail -s \"$body\" $args{email}"; 
     my $out     = `$cmd`;
 }
 

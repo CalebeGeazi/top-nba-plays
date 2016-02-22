@@ -346,7 +346,7 @@ sub send_email {
     my $date = shift;
 
     my $subject = "Top Plays for $date Not Found";
-    my $body    = "API Request: $api_request"
+    my $body    = "API Request: $api_request";
     my $cmd     = "echo $subject | mail -s \"$body\" $args{email}"; 
     my $out     = `$cmd`;
 }

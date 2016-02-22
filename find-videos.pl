@@ -20,13 +20,15 @@ my %args = (
     'start-date'  => 'yesterday',
     'end-date'    => 'yesterday',
     'config-file' => '',
-    'custom-q' => '',
+    'custom-q'    => '',
+    'send-email'  => 0
 );
 GetOptions(
     'start-date=s'  => \$args{'start-date'},
     'end-date=s'    => \$args{'end-date'},
     'config-file=s' => \$args{'config-file'},
-	'custom-q=s' => \$args{'custom-q'},
+	'custom-q=s'    => \$args{'custom-q'},
+    'send-email=i'  => \$args{'send-email'},
 );
 
 # process config-file
@@ -233,7 +235,7 @@ sub process_youtube_data {
 
                 # check if this video is the one we're looking for by comparing the title with all
                 # our search terms
-                if ( $title && ( $title eq $q || $alt_title eq $q || $title eq $secondary_q ) ) {
+                if ( $title && ( $title =~ m/$q/i || $alt_title =~ m/$q/i || $title =~ m/$secondary_q/i ) ) {
                     $successful_find{y_id}    = $item->{id}->{videoId};
                     $successful_find{date}    = $fusion_table_date;
                     $successful_find{y_title} = $title;
@@ -338,6 +340,7 @@ sub execute_fusion_sql {
 
 # send mail
 sub send_email {
+    return if !$args{'send-email'};
     my $date = shift;
 
     my $message = "Top Plays for $date Not Found";

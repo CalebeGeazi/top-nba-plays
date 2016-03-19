@@ -421,7 +421,7 @@ sub create_master_json_file {
 
     if ( %new_hash ) {
         my $json = encode_json( \%new_hash );
-        my $filename = 'vidoes.json';
+        my $filename = 'top-nba-plays/json/vidoes.json';
         open( my $fh, '>', $filename ) or die "Could not open file '$filename' $!";
         print $fh "$json";
         close $fh;

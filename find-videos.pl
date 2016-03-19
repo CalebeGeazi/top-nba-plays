@@ -81,6 +81,9 @@ my ( $delta_days_end_date, $delta_days_start_date ) = get_delta_days();
 # find top plays videos from youtube and insert their data into my fusion table
 find_and_insert_videos( $delta_days_end_date, $delta_days_start_date );
 
+# create master json file
+create_master_json_file();
+
 ##################### END MAIN PROGRAM #########################
 
 
@@ -300,7 +303,6 @@ sub build_sql {
                 $row_id     = $row->[1];
             }
         }
-
     }
 
     # if there's already a row in the table for the date then update this data 
@@ -378,7 +380,6 @@ sub process_config_file {
     print "\n\n";
 }
 
-
 # validate_dates
 sub validate_dates {
     # start-date and end-date must be in MM-DD-YYYY format or 'yesterday'
@@ -391,3 +392,45 @@ sub validate_dates {
         die ( "end-date format is invalid, must be MM-DD-YYYY" ) if !$is_vaild;
     }
 }
+
+# method to create master json file from fusion table data
+sub create_master_json_file {
+    my $select = "SELECT * FROM $TABLE_NAME order by date desc";
+    my $select_json_response = execute_fusion_sql( $select );
+
+    my %new_hash = ();
+    if ( $select_json_response ) {
+        my $hash = decode_json( $select_json_response );
+        if ( $hash->{kind} eq $FUSION_RESPONSE ) {
+            my @cols = @{$hash->{columns}};
+            if ( $hash->{rows} && $hash->{columns} ) {
+                my @cols    = @{$hash->{columns}};
+                my @rows    = @{$hash->{rows}};
+                my @videos;
+                foreach my $row ( @rows ) {
+                    my %video_data;
+                    for ( my $i = 0; $i < scalar ( @{$row} ); $i++ ) {
+                        $video_data{$cols[$i]} = $row->[$i];
+                    }
+                    push ( @videos, \%video_data ) if %video_data;
+                }
+                $new_hash{videos} = \@videos if @videos;
+            }
+        }
+    }
+
+    if ( %new_hash ) {
+        my $json = encode_json( \%new_hash );
+        my $filename = 'vidoes.json';
+        open( my $fh, '>', $filename ) or die "Could not open file '$filename' $!";
+        print $fh "$json";
+        close $fh;
+    }
+}
+
+
+
+
+
+
+

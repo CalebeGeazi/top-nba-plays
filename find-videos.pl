@@ -420,10 +420,21 @@ sub create_master_json_file {
     }
 
     if ( %new_hash ) {
-        my $json = encode_json( \%new_hash );
+        my $json     = encode_json( \%new_hash );
+        my $cmd1     = "git checkout gh-pages";
+        my $output1  = `$cmd1`;
         my $filename = 'json/vidoes.json';
         open( my $fh, '>', $filename ) or die "Could not open file '$filename' $!";
         print $fh "$json";
+        my $cmd2    = 'git add . ; git commit -m "update json" ; git push origin gh-pages';
+        my $output2 = `$cmd2`;
         close $fh;
     }
 }
+
+
+
+
+
+
+

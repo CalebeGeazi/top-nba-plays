@@ -9,6 +9,7 @@ use Getopt::Long;
 use Data::Dumper;
 use Date::Calc qw( Delta_Days );
 use Email::MIME;
+use Git::Repository;
 
 use strict;
 use warnings;
@@ -422,13 +423,14 @@ sub create_master_json_file {
 
     if ( %new_hash ) {
         my $json     = encode_json( \%new_hash );
-        my $cmd1     = "/usr/bin/git checkout gh-pages";
-        my $output1  = `$cmd1`;
+        my $git      = Git::Repository->new( work_tree => "/home/pi/Github/top-nba-plays/" );
+        $git->run( checkout => "gh-pages" );
         my $filename = '/home/pi/Github/top-nba-plays/json/vidoes.json';
         open( my $fh, '>', $filename ) or die "Could not open file '$filename' $!";
         print $fh "$json";
-        my $cmd2    = '/usr/bin/git add . ; /usr/bin/git commit -m "update json" ; /usr/bin/git push origin gh-pages';
-        my $output2 = `$cmd2`;
         close $fh;
+        $git->run( add => "/home/pi/Github/top-nba-plays/json/vidoes.json" );
+        $git->run( commit => '-m', 'update json' );
+        $git->run( push => 'origin', 'gh-pages')
     } 
 }

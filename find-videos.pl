@@ -82,6 +82,7 @@ my ( $delta_days_end_date, $delta_days_start_date ) = get_delta_days();
 find_and_insert_videos( $delta_days_end_date, $delta_days_start_date );
 
 # create master json file
+print "\nprocess create_master_json_file\n";
 create_master_json_file();
 
 ##################### END MAIN PROGRAM #########################
@@ -421,20 +422,13 @@ sub create_master_json_file {
 
     if ( %new_hash ) {
         my $json     = encode_json( \%new_hash );
-        my $cmd1     = "git checkout gh-pages";
+        my $cmd1     = "/usr/bin/git checkout gh-pages";
         my $output1  = `$cmd1`;
-        my $filename = 'json/vidoes.json';
+        my $filename = '/home/pi/Github/top-nba-plays/json/vidoes.json';
         open( my $fh, '>', $filename ) or die "Could not open file '$filename' $!";
         print $fh "$json";
-        my $cmd2    = 'git add . ; git commit -m "update json" ; git push origin gh-pages';
+        my $cmd2    = '/usr/bin/git add . ; /usr/bin/git commit -m "update json" ; /usr/bin/git push origin gh-pages';
         my $output2 = `$cmd2`;
         close $fh;
-    }
+    } 
 }
-
-
-
-
-
-
-
